@@ -3,7 +3,7 @@
     "description": "phpkit 核心类，基于 phalcon",
     "type": "project",
     "keywords": [
-        "pay"
+        "core"
     ],
     "homepage": "http://www.phpkit.me/",
     "license": "Apache-2.0",
