@@ -1,7 +1,6 @@
 {
     "name": "phpkit/core",
     "description": "phpkit 核心类，基于 phalcon",
-    "type": "project",
     "keywords": [
         "core"
     ],
