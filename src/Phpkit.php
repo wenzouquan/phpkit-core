@@ -5,7 +5,6 @@ use \Phalcon\DI\FactoryDefault;
 use \Phalcon\Mvc\Url;
 use \Phalcon\Mvc\View;
 
-require 'Helper.php';
 class Phpkit {
 	static $cache;
 	static $di;
