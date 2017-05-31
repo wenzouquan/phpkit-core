@@ -1,40 +1,31 @@
 <?php
 namespace phpkit\core;
-use Phalcon\Db\Adapter\Pdo\Mysql as DbAdapter;
 use phpkit\core\Phpkit as Phpkit;
 
-if (!(isset($GLOBALS['di']) && get_class($GLOBALS['di']) == 'Phalcon\Di\FactoryDefault')) {
-	$GLOBALS['di'] = new \Phalcon\DI\FactoryDefault();
-}
-//设置phpkitDb ， 数据连接
-if (empty($GLOBALS['di']['phpkitDb'])) {
-	$GLOBALS['di']['phpkitDb'] = function () {
-		$config = new \phpkit\config\Config();
-		$DbConfig = $config->get("phpkitDb", 'setIfNull');
-		return new DbAdapter($DbConfig);
-	};
-}
-
+$Phpkit = new Phpkit();
+$Phpkit->setDb();
 //设置modelsMetadata缓存
-if (empty($GLOBALS['di']['modelsMetadata'])) {
-	// $GLOBALS['di']['modelsMetadata'] = function () {
-	// 	// Create a meta-data manager with APC
-	// 	// $metaData = new \Phalcon\Mvc\Model\MetaData\Apc(array(
-	// 	// 	"lifetime" => 1,
-	// 	// 	"prefix" => "my-prefix",
-	// 	// ));
-	// 	$metaData = new \Phalcon\Mvc\Model\Metadata\Files(
-	// 		[
-	// 			"metaDataDir" => dirname(dirname(dirname(dirname(dirname(__FILE__))))) . '/cache/',
-	// 		]
-	// 	);
-	// 	return $metaData;
-	// };
-}
+// if (empty($GLOBALS['di']['modelsMetadata'])) {
+// 	// $GLOBALS['di']['modelsMetadata'] = function () {
+// 	// 	// Create a meta-data manager with APC
+// 	// 	// $metaData = new \Phalcon\Mvc\Model\MetaData\Apc(array(
+// 	// 	// 	"lifetime" => 1,
+// 	// 	// 	"prefix" => "my-prefix",
+// 	// 	// ));
+// 	// 	$metaData = new \Phalcon\Mvc\Model\Metadata\Files(
+// 	// 		[
+// 	// 			"metaDataDir" => dirname(dirname(dirname(dirname(dirname(__FILE__))))) . '/cache/',
+// 	// 		]
+// 	// 	);
+// 	// 	return $metaData;
+// 	// };
+// }
 
 class BaseModel extends \Phalcon\Mvc\Model {
 	protected $Pk;
 	protected $TableName;
+	public $findOptions = array();
+	public $error;
 	public function onConstruct($name = "") {
 		if ($name) {
 			$this->setSource($name);
@@ -63,20 +54,31 @@ class BaseModel extends \Phalcon\Mvc\Model {
 		return $this->Pk;
 	}
 
-	public function columnMap() {
-		$metaData = $this->getModelsMetaData();
-		$attributes = $metaData->getAttributes($this);
-		$PrimaryKeys = $metaData->getPrimaryKeyAttributes($this);
-		$this->Pk = $PrimaryKeys[0];
-		$data = array();
-		foreach ($attributes as $key => $value) {
-			$data[$value] = $this->convertUnderline2($value);
-		}
-		return $data;
-	}
+	// public function columnMap() {
+	// 	$metaData = $this->getModelsMetaData();
+	// 	$attributes = $metaData->getAttributes($this);
+	// 	$PrimaryKeys = $metaData->getPrimaryKeyAttributes($this);
+	// 	$this->Pk = $PrimaryKeys[0];
+	// 	$data = array();
+	// 	foreach ($attributes as $key => $value) {
+	// 		$data[$value] = $this->convertUnderline2($value);
+	// 	}
+	// 	return $data;
+	// }
 
 	public function getTableName() {
 		return $this->TableName = $this->getSource();
+	}
+
+	//设置查询条件
+	public function where($condition) {
+		$this->findOptions['conditions'] = $condition;
+		return $this;
+	}
+	//设置查询条件
+	public function bind($conditionValue) {
+		$this->findOptions['bind'] = $conditionValue;
+		return $this;
 	}
 
 	//加载一条数据, 默认会缓存数据
@@ -84,7 +86,8 @@ class BaseModel extends \Phalcon\Mvc\Model {
 		$tableName = $this->getTableName();
 		$pk = $this->getPk();
 		$config = new \phpkit\config\Config();
-		if (is_array($op)) {
+		if (is_array($op) || empty($op)) {
+			$op = array_merge($this->findOptions, $op);
 			ksort($op);
 		}
 		$res = null;
@@ -105,20 +108,104 @@ class BaseModel extends \Phalcon\Mvc\Model {
 		return $res;
 	}
 
+	//删一条缓存
+	public function delCacheByPk() {
+		$pk = $this->getPk();
+		$tableName = $this->getTableName();
+		$cacheKeyPk = $tableName . "_" . $this->$pk;
+		if (Phpkit::cache()->exists($cacheKeyPk)) {
+			Phpkit::cache()->delete($cacheKeyPk); //缓存结果
+		}
+	}
+
 	public function afterUpdate() {
-		echo 'afterUpdate';
+
 	}
 
 	public function afterCreate() {
-		echo 'afterCreate';
+
+		//echo 'afterCreate';
+	}
+	//更新 添加之后清缓存
+	public function afterSave() {
+
+		$this->findOptions = array(); //清空查询
+		$this->delCacheByPk();
+	}
+	//删除之后
+	public function afterDelete() {
+		///var_dump($this->Id);
+		$this->findOptions = array(); //清空查询
+		$this->delCacheByPk();
 	}
 
-	public function afterSave() {
-		echo 'afterSave';
+	public function order($orderBy = "") {
+		if (!empty($orderBy)) {
+			$this->findOptions['order'] = $orderBy;
+		}
+		return $this;
+
+	}
+	public function limit($limit = array()) {
+		if (!empty($limit)) {
+			if (is_string($limit)) {
+				$limits = explode(",", $limit);
+				$arr = array('number' => intval($limits[0]) ? intval($limits[0]) : 10, 'offset' => intval($limits[1]));
+			} else {
+				$arr = $limit;
+			}
+			$this->findOptions['limit'] = $arr;
+		}
+		return $this;
 	}
 
 	//加载列表
-	public function get($op) {
-
+	public function get($op = array()) {
+		$res = array();
+		if (is_array($op)) {
+			$op = array_merge($this->findOptions, $op);
+			ksort($op);
+		}
+		$res['recordsFiltered'] = $this->count(array('conditions' => $op['conditions']));
+		$res['recordsTotal'] = $this->count();
+		// if (empty($op)) {
+		// 	throw new \Exception("查询条件不能为空", 1);
+		// }
+		//var_dump($res);
+		$res['list'] = $this->find($op);
+		$this->findOptions = array(); //清空查询
+		return $res;
 	}
+	//删除
+	public function deleteByFind($op = array()) {
+		if (!is_array($op) && !empty($op)) {
+			$res = $this->load($op);
+			$lists = $res ? array($res) : array();
+
+		}
+		if (is_array($op)) {
+			$res = $this->get($op);
+			$lists = $res['list'] ? $res['list'] : array();
+		}
+		$this->deleteLists = $lists;
+		$flag = 1;
+		if (!empty($lists)) {
+			foreach ($lists as $key => $list) {
+				if ($list->delete() == false) {
+					foreach ($list->getMessages() as $message) {
+						$this->error[] = $message;
+					}
+					$flag = $flag * 0;
+				} else {
+					$flag = $flag * 1;
+				}
+			}
+		} else {
+			$this->error[] = "没有查询到删除数据";
+		}
+
+		$this->findOptions = array(); //清空查询
+		return $flag;
+	}
+
 }
