@@ -6,7 +6,7 @@ use phpkit\backend\View as backendView;
 class BaseController extends Controller {
 	public function initialize() {
 		//parent::initialize();
-		$this->ControllerName = $this->convertUnderline($this->dispatcher->getControllerName());
+		$this->ControllerName = \phpkit\helper\convertUnderline($this->dispatcher->getControllerName());
 		$this->ActionName = $this->dispatcher->getActionName();
 	}
 
