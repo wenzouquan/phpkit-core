@@ -25,7 +25,7 @@ class Phpkit {
 			));
 
 			self::$cache = new \Phalcon\Cache\Backend\File($frontCache, array(
-				"cacheDir" => phpkitRoot . '/cache/',
+				"cacheDir" => phpkitRoot . '/cache/data/',
 			));
 		}
 		return self::$cache;
@@ -35,9 +35,10 @@ class Phpkit {
 		if (self::$di && get_class(self::$di) == 'Phalcon\Di\FactoryDefault') {
 			return self::$di;
 		}
-		if (isset($GLOBALS['di'])) {
-			self::$di = $GLOBALS['di'] = new FactoryDefault();
+		if (empty($GLOBALS['di'])) {
+			$GLOBALS['di'] = new FactoryDefault();
 		}
+		self::$di = $GLOBALS['di'];
 		return self::$di;
 	}
 
@@ -51,7 +52,6 @@ class Phpkit {
 				return new AdapterMsql($DbConfig);
 			};
 		}
-		//return $di['phpkitDb'];
 	}
 	//设置显示
 	public static function getViews($viewDir = "") {
@@ -63,7 +63,11 @@ class Phpkit {
 	public function run($config = array()) {
 		try {
 			error_reporting(E_ALL ^ E_NOTICE);
-			date_default_timezone_set('PRC'); //设置为北京时间
+			if (empty($config['date_default_timezone_set'])) {
+				date_default_timezone_set('PRC'); //设置为北京时间
+			} else {
+				date_default_timezone_set($config['date_default_timezone_set']);
+			}
 			// Register an autoloader
 			$loader = new \Phalcon\Loader();
 			$loader->registerDirs(
@@ -73,10 +77,16 @@ class Phpkit {
 				)
 			)->register();
 
-			if (empty($config['di']) || get_class($config['di']) != 'Phalcon\Di\FactoryDefault') {
+			if (empty($config['di']) || is_array($config['di']) || get_class($config['di']) != 'Phalcon\Di\FactoryDefault') {
 				$di = new \Phalcon\DI\FactoryDefault();
 			} else {
 				$di = $config['di'];
+			}
+			//设置di
+			if (is_array($config['di'])) {
+				foreach ($config['di'] as $key => $value) {
+					$di[$key] = $value;
+				}
 			}
 
 			// Create a DI
@@ -106,10 +116,20 @@ class Phpkit {
 				$BaseUri = "/" . $config['appBaseUri'] . "/";
 				define("tmpBaseUri", $BaseUri);
 				$di['url'] = function () {
-
 					$url = new Url();
 					$url->setBaseUri(tmpBaseUri);
 					return $url;
+				};
+			}
+
+			//设置数据库modelsMetadata 缓存
+			//var_dump($di['modelsMetadata']);
+			if (empty($config['di']['modelsMetadata'])) {
+				$di['modelsMetadata'] = function () {
+					$metaData = new \Phalcon\Mvc\Model\Metadata\Files([
+						"metaDataDir" => phpkitRoot . '/cache/metadata/',
+					]);
+					return $metaData;
 				};
 			}
 
