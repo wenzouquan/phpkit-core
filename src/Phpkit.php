@@ -21,12 +21,14 @@ class Phpkit {
 	public static function cache() {
 		if (empty(self::$cache)) {
 			$frontCache = new \Phalcon\Cache\Frontend\Data(array(
-				"lifetime" => 172800000,
+				"lifetime" => 0,
 			));
-
+			$cacheDir = phpkitRoot . '/cache/data/';
+			\phpkit\helper\mk_dir($cacheDir);
 			self::$cache = new \Phalcon\Cache\Backend\File($frontCache, array(
-				"cacheDir" => phpkitRoot . '/cache/data/',
+				"cacheDir" => $cacheDir,
 			));
+			self::$di['cache'] = self::$cache;
 		}
 		return self::$cache;
 	}
@@ -121,17 +123,57 @@ class Phpkit {
 					return $url;
 				};
 			}
+			//缓存配置
+			if (!empty($config['di']['cache'])) {
+				self::$cache = $config['di']['cache'];
+			}
 
 			//设置数据库modelsMetadata 缓存
 			//var_dump($di['modelsMetadata']);
+			// if (empty($config['di']['modelsMetadata'])) {
+			// 	$di['modelsMetadata'] = function () {
+			// 		$metaData = new \Phalcon\Mvc\Model\Metadata\Files([
+			// 			"metaDataDir" => phpkitRoot . '/cache/metadata/',
+			// 		]);
+			// 		return $metaData;
+			// 	};
+			// }
+
 			if (empty($config['di']['modelsMetadata'])) {
 				$di['modelsMetadata'] = function () {
-					$metaData = new \Phalcon\Mvc\Model\Metadata\Files([
-						"metaDataDir" => phpkitRoot . '/cache/metadata/',
-					]);
+					$metaData = new \Phalcon\Mvc\Model\MetaData\Apc(array(
+						"lifetime" => 0,
+						"prefix" => "phpkit-modelsMetadata",
+					));
+
 					return $metaData;
 				};
 			}
+
+			if (empty($config['di']['phpkitDb'])) {
+				$di['phpkitDb'] = function () {
+					$config = new \phpkit\config\Config();
+					$DbConfig = $config->get("phpkitDb", 'setIfNull');
+					return new AdapterMsql($DbConfig);
+				};
+			}
+
+			if (empty($config['di']['session'])) {
+				$di['session'] = function () {
+					$session = new \Phalcon\Session\Adapter\Files(
+						array(
+							'uniqueId' => 'phpkit',
+						)
+					);
+					$session->start();
+					return $session;
+				};
+			}
+			//配置文件
+			$di['phpkitConfig'] = function () {
+				$config = new \phpkit\config\Config();
+				return $config;
+			};
 
 			self::$di = $di;
 			// Handle the request

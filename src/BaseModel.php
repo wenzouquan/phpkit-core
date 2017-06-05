@@ -2,8 +2,6 @@
 namespace phpkit\core;
 use phpkit\core\Phpkit as Phpkit;
 
-$Phpkit = new Phpkit();
-$Phpkit->setDb();
 //设置modelsMetadata缓存
 class BaseModel extends \Phalcon\Mvc\Model {
 	protected $Pk;
@@ -29,18 +27,6 @@ class BaseModel extends \Phalcon\Mvc\Model {
 		return $this->Pk;
 	}
 
-	// public function columnMap() {
-	// 	$metaData = $this->getModelsMetaData();
-	// 	$attributes = $metaData->getAttributes($this);
-	// 	$PrimaryKeys = $metaData->getPrimaryKeyAttributes($this);
-	// 	$this->Pk = $PrimaryKeys[0];
-	// 	$data = array();
-	// 	foreach ($attributes as $key => $value) {
-	// 		$data[$value] = $this->convertUnderline2($value);
-	// 	}
-	// 	return $data;
-	// }
-
 	public function getTableName() {
 
 		return $this->TableName ? $this->TableName : $this->getSource();
@@ -51,16 +37,17 @@ class BaseModel extends \Phalcon\Mvc\Model {
 		if (is_string($condition)) {
 			$this->findOptions['conditions'] = $condition;
 		} elseif (is_array($condition)) {
-			$where = "";
+			$where = "1";
 			$bind = array();
 			foreach ($condition as $key => $value) {
 				$join = is_array($value) ? $value[0] : "=";
+				$andOr = is_array($value) ? $value[2] : "and";
 				if (is_array($value[1])) {
 					$map = "({{$key}:array})";
 				} else {
 					$map = ":{$key}:";
 				}
-				$where .= "{$key} {$join} $map";
+				$where .= " {$andOr} {$key} {$join} $map";
 				$bind[$key] = is_array($value) ? $value[1] : $value;
 			}
 			$this->findOptions = array('conditions' => $where, 'bind' => $bind);
@@ -76,8 +63,16 @@ class BaseModel extends \Phalcon\Mvc\Model {
 
 	//加载一条数据, 默认会缓存数据
 	public function load($op = array()) {
+
 		$tableName = $this->getTableName();
 		$pk = $this->getPk();
+		if (is_string($op) && !is_numeric($op)) {
+			$value = $op;
+			$op = array();
+			$op['conditions'] = "{$pk} = :{$pk}:";
+			$op['bind'] = array($pk => $value);
+		}
+
 		if (is_array($op) || empty($op)) {
 			$op = array_merge($this->findOptions, $op);
 			ksort($op);

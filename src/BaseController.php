@@ -10,7 +10,7 @@ class BaseController extends Controller {
 		$this->ActionName = $this->dispatcher->getActionName();
 	}
 
-	protected function jump($msg, $url) {
+	protected function jump($msg = "", $url = "") {
 		header("Content-type: text/html; charset=utf-8");
 		$new_url = $url ? $url : $_SERVER['HTTP_REFERER'];
 		if ($msg) {
@@ -33,10 +33,10 @@ class BaseController extends Controller {
 	}
 
 	public function adminDisplay($controllerName = "", $actionName = "") {
-		//echo 'wen';
 		$content = $this->fetch($controllerName, $actionName);
 		$backendView = new backendView();
 		$backendView->display($content);
+
 	}
 
 }
