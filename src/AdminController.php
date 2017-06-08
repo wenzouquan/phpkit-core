@@ -8,6 +8,7 @@ class AdminController extends BaseController {
 		//验证是否有权限
 		$this->checkAuth();
 		//$this->loginOut();
+		$this->view->adminUserInfo = $this->adminUserInfo = $this->session->get('adminUserInfo');
 	}
 	//验证是否登录
 	public function checkLogin() {
