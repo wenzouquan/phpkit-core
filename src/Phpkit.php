@@ -1,5 +1,7 @@
 <?php
 namespace phpkit\core;
+use Phalcon\Events\Manager as EventsManager;
+use Phalcon\Mvc\Dispatcher as MvcDispatcher;
 use \Phalcon\Db\Adapter\Pdo\Mysql as AdapterMsql;
 use \Phalcon\DI\FactoryDefault;
 use \Phalcon\Mvc\Url;
@@ -19,14 +21,20 @@ class Phpkit {
 
 	//缓存
 	public static function cache() {
+		//默认redis
 		if (empty(self::$cache)) {
-			$frontCache = new \Phalcon\Cache\Frontend\Data(array(
-				"lifetime" => 0,
-			));
-			$cacheDir = phpkitRoot . '/cache/data/';
-			\phpkit\helper\mk_dir($cacheDir);
-			self::$cache = new \Phalcon\Cache\Backend\File($frontCache, array(
-				"cacheDir" => $cacheDir,
+			// $frontCache = new \Phalcon\Cache\Frontend\Data(array(
+			// 	"lifetime" => 0,
+			// ));
+			// $cacheDir = phpkitRoot . '/cache/data/';
+			// \phpkit\helper\mk_dir($cacheDir);
+			// self::$cache = new \Phalcon\Cache\Backend\File($frontCache, array(
+			// 	"cacheDir" => $cacheDir,
+			// ));
+			self::$cache = new \phpkit\redis\Redis(array(
+				"prefix" => 'phpkit-data-cache-',
+				'host' => '127.0.0.1',
+				'port' => 6379,
 			));
 			self::$di['cache'] = self::$cache;
 		}
@@ -63,6 +71,11 @@ class Phpkit {
 	}
 
 	public function run($config = array()) {
+		$application = $this->init($config);
+		echo $application->handle()->getContent();
+	}
+
+	public function init($config = array()) {
 		try {
 			error_reporting(E_ALL ^ E_NOTICE);
 			if (empty($config['date_default_timezone_set'])) {
@@ -71,13 +84,20 @@ class Phpkit {
 				date_default_timezone_set($config['date_default_timezone_set']);
 			}
 			// Register an autoloader
+			$config['registerDirs'] = $config['registerDirs'] ? $config['registerDirs'] : array(
+				$config["appDir"] . '/app/controllers/',
+				$config["appDir"] . '/app/models/',
+			);
 			$loader = new \Phalcon\Loader();
 			$loader->registerDirs(
+				$config['registerDirs']
+			);
+			$loader->registerNamespaces(
 				array(
-					$config["appDir"] . '/app/controllers/',
-					$config["appDir"] . '/app/models/',
+					"Example" => $config["appDir"] . '/test/',
 				)
-			)->register();
+			);
+			$loader->register();
 
 			if (empty($config['di']) || is_array($config['di']) || get_class($config['di']) != 'Phalcon\Di\FactoryDefault') {
 				$di = new \Phalcon\DI\FactoryDefault();
@@ -140,6 +160,7 @@ class Phpkit {
 			// }
 
 			if (empty($config['di']['modelsMetadata'])) {
+				require 'apc.php';
 				$di['modelsMetadata'] = function () {
 					$metaData = new \Phalcon\Mvc\Model\MetaData\Apc(array(
 						"lifetime" => 0,
@@ -169,16 +190,46 @@ class Phpkit {
 					return $session;
 				};
 			}
+
+			//自定义dispatcher
+			if (empty($config['di']['dispatcher'])) {
+				$di['dispatcher'] = function () {
+					//创建一个事件管理
+					$eventsManager = new EventsManager();
+					//附上一个侦听者
+					$eventsManager->attach("dispatch:beforeDispatchLoop", function ($event, $dispatcher) {
+						$target = array();
+						$get = $_GET;
+						unset($get['_url']);
+						$source = $dispatcher->getParams();
+						//用奇数参数作key，用偶数作值
+						for ($i = 0; $i < count($source); $i += 2) {
+							$target[$source[$i]] = $source[$i + 1];
+						}
+						$params = array_merge($get, $target);
+						//重写参数
+						$dispatcher->setParams($params);
+					});
+					$dispatcher = new MvcDispatcher();
+					$dispatcher->setEventsManager($eventsManager);
+					return $dispatcher;
+				};
+			}
 			//配置文件
-			$di['phpkitConfig'] = function () {
-				$config = new \phpkit\config\Config();
-				return $config;
-			};
+			if (empty($config['di']['config'])) {
+				$di['config'] = function () {
+					$config = new \phpkit\config\Config();
+					return $config;
+				};
+			}
 
 			self::$di = $di;
+			//执行action
+			//call_user_func_array(array($controller, $actionName . "Action"), $params);
 			// Handle the request
 			$application = new \Phalcon\Mvc\Application($di);
-			echo $application->handle()->getContent();
+			return $application;
+
 		} catch (Exception $e) {
 			echo "Exception: ", $e->getMessage();
 		}

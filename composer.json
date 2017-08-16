@@ -20,6 +20,6 @@
         "psr-4": {
             "phpkit\\core\\": "src/"
         },
-        "files": ["src/functions.php","src/helper.php"]
+        "files": ["src/functions.php"]
     }
 }

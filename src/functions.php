@@ -44,7 +44,7 @@ function mk_dir($path) {
  * 10      * @param string $text 文件内容
  * 11      * @return boolean
  * 12      */
-function saveFile($fileName, $text, $overwrite = 0) {
+function saveFile($fileName, $text, $overwrite = 1) {
 	if (!$fileName || !$text) {
 		return false;
 	}
