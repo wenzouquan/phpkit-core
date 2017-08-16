@@ -84,19 +84,18 @@ class Phpkit {
 				date_default_timezone_set($config['date_default_timezone_set']);
 			}
 			// Register an autoloader
-			$config['registerDirs'] = $config['registerDirs'] ? $config['registerDirs'] : array(
-				$config["appDir"] . '/app/controllers/',
-				$config["appDir"] . '/app/models/',
-			);
+
 			$loader = new \Phalcon\Loader();
-			$loader->registerDirs(
-				$config['registerDirs']
-			);
-			$loader->registerNamespaces(
-				array(
-					"Example" => $config["appDir"] . '/test/',
-				)
-			);
+			if (is_array($config['registerDirs'])) {
+				$loader->registerDirs(
+					$config['registerDirs']
+				);
+			}
+
+			if (is_array($config['registerNamespaces'])) {
+				$loader->registerNamespaces($config['registerNamespaces']);
+			}
+
 			$loader->register();
 
 			if (empty($config['di']) || is_array($config['di']) || get_class($config['di']) != 'Phalcon\Di\FactoryDefault') {
