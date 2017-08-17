@@ -6,20 +6,18 @@
     ],
     "homepage": "http://www.phpkit.me/",
     "license": "Apache-2.0",
-    "authors": [
-        {
-            "name": "liu21st",
-            "email": "liu21st@gmail.com"
-        }
-    ],
+    "authors": [{
+        "name": "wen190",
+        "email": "359945126@qq.com"
+    }],
     "config": {
         "preferred-install": "dist"
     },
 
-     "autoload": {
+    "autoload": {
         "psr-4": {
             "phpkit\\core\\": "src/"
         },
-        "files": ["src/functions.php"]
+        "files": ["src/functions.php", "src/apc.php"]
     }
 }
