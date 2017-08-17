@@ -130,11 +130,10 @@ class Phpkit {
 					return $view;
 				};
 			}
-
 			// Setup a base URI so that all generated URIs include the "tutorial" folder
 
 			if (empty($config['di']['url'])) {
-				$BaseUri = "/" . $config['appBaseUri'] . "/";
+				$BaseUri = $config['appBaseUri'] ? "/" . $config['appBaseUri'] . "/" : "/";
 				define("tmpBaseUri", $BaseUri);
 				$di['url'] = function () {
 					$url = new Url();
