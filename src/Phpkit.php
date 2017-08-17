@@ -221,7 +221,11 @@ class Phpkit {
 					return $config;
 				};
 			}
-
+			//设置servicesApi
+			if (!empty($config['servicesApi'])) {
+				$rpcClient = new \phpkit\thriftrpc\Client();
+				$rpcClient->registerDefinition($config['servicesApi']);
+			}
 			self::$di = $di;
 			//执行action
 			//call_user_func_array(array($controller, $actionName . "Action"), $params);
