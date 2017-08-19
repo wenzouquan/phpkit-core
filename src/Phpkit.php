@@ -57,7 +57,7 @@ class Phpkit {
 		$di = self::getDi();
 		if (empty($di['phpkitDb'])) {
 			$di['phpkitDb'] = function () {
-				$config = new \phpkit\config\Config();
+				$config = self::getDi()->getConfig();
 				$DbConfig = $config->get("phpkitDb", 'setIfNull');
 				return new AdapterMsql($DbConfig);
 			};
@@ -114,8 +114,8 @@ class Phpkit {
 			// Set the database service
 			if (empty($di['db'])) {
 				$di['db'] = function () {
-					$config = new \phpkit\config\Config();
-					$DbConfig = $config->get("phpkitDb", 'setIfNull');
+					$config = $di->getConfig();
+					$DbConfig = $config->get("database", 'setIfNull');
 					return new AdapterMsql($DbConfig);
 				};
 			}
@@ -143,7 +143,7 @@ class Phpkit {
 			}
 			//缓存配置
 			if (!empty($config['di']['cache'])) {
-				self::$cache = $config['di']['cache'];
+				self::$cache = $di->getCache();
 			}
 
 			//设置数据库modelsMetadata 缓存
