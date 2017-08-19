@@ -1,7 +1,4 @@
 {
-    "require": {
-        "phpkit/config": "dev-master"
-    },
     "name": "phpkit/core",
     "description": "phpkit 核心类，基于 phalcon",
     "keywords": [
