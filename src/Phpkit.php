@@ -205,6 +205,9 @@ class Phpkit {
 							$target[$source[$i]] = $source[$i + 1];
 						}
 						$params = array_merge($get, $target);
+                        if(is_array($_POST)){
+                            $params = array_merge($params, $_POST);
+                        }
 						//重写参数
 						$dispatcher->setParams($params);
 					});
