@@ -75,9 +75,17 @@ class Phpkit {
 		echo $application->handle()->getContent();
 	}
 
+	public function setXdebugSession(){
+        if(isset($_GET['XDEBUG_SESSION_START'])){
+            $xdebugSession = $_GET['XDEBUG_SESSION_START'];
+            \apc_store("XDEBUG_SESSION_START",$xdebugSession);
+        }
+    }
+
 	public function init($config = array()) {
 		try {
 			error_reporting(E_ALL ^ E_NOTICE);
+            $this->setXdebugSession();
 			if (empty($config['date_default_timezone_set'])) {
 				date_default_timezone_set('PRC'); //设置为北京时间
 			} else {
@@ -110,15 +118,6 @@ class Phpkit {
 				}
 			}
 
-			// Create a DI
-			// Set the database service
-			if (empty($di['db'])) {
-				$di['db'] = function () {
-					$config = $di->getConfig();
-					$DbConfig = $config->get("database", 'setIfNull');
-					return new AdapterMsql($DbConfig);
-				};
-			}
 
 			// Setting up the view component
 			if (empty($di['view'])) {
