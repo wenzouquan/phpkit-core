@@ -1,8 +1,8 @@
 <?php
-if (!function_exists('apc_add')) {
-	if (!extension_loaded('apcu')) {
-		throw new \Exception("not  suppert apc", 1);
-	}
+if (extension_loaded('apcu')) {
+	// if (!extension_loaded('apcu')) {
+	// 	throw new \Exception("not  suppert apc", 1);
+	// }
 	function apc_add($key = "", $value = "", $exp = 0) {
 		return apcu_add($key, $value, $exp);
 	}
