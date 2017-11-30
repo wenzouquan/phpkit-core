@@ -115,7 +115,9 @@ function arrayeval($array, $level = 0) {
 	$evaluate = "Array\n$space(\n";
 
 	$comma = $space;
-
+    if(!is_array($array)){
+        return $array;
+    }
 	foreach ($array as $key => $val) {
 
 		$key = is_string($key) ? '\'' . addcslashes($key, '\'\\') . '\'' : $key;

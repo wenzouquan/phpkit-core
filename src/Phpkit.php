@@ -121,11 +121,23 @@ class Phpkit {
 
 			// Setting up the view component
 			if (empty($di['view'])) {
-				$ViewsDir = $config["appDir"] . "/app/views/";
-				define("tmpViewsDir", $ViewsDir);
-				$di['view'] = function () {
+				$di['view'] = function () use ($config) {
 					$view = new View();
-					$view->setViewsDir(tmpViewsDir);
+					$view->setViewsDir($config["appDir"] . "/app/views/");
+                    $view->registerEngines([
+                        '.phtml' => '\Phalcon\Mvc\View\Engine\Php',
+                        '.volt' => function($view, $di) use ($config) {
+                            $volt = new \Phalcon\Mvc\View\Engine\Volt($view, $di);
+                            $volt->setOptions(['compiledPath'       => $config['cacheDir'] . 'view/',
+                                'compiledExtension' => '.compiled',
+                                'compileAlways'     => true
+                            ]);
+                            $compiler = $volt->getCompiler();
+                            $compiler->addFilter('floor', 'floor');
+                            $compiler->addFunction('range', 'range');
+                            return $volt;
+                        },
+                    ]);
 					return $view;
 				};
 			}
