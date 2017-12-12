@@ -123,7 +123,7 @@ class Phpkit {
 			if (empty($di['view'])) {
 				$di['view'] = function () use ($config) {
 					$view = new View();
-					$view->setViewsDir($config["appDir"] . "/app/views/");
+					$view->setViewsDir($config["viewsDir"] );
                     $view->registerEngines([
                         '.phtml' => '\Phalcon\Mvc\View\Engine\Php',
                         '.volt' => function($view, $di) use ($config) {
