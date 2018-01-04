@@ -85,7 +85,7 @@ function saveFile($fileName, $text, $overwrite = 1) {
 	if (!is_writable(dirname($fileName))) {
 		throw new \Exception("Permission denied in" . dirname($fileName), 1);
 	}
-	if (is_file($fileName) && $overwrite === 0) {
+	if (is_file($fileName) && $overwrite !=1) {
 		throw new \Exception($fileName . " exist", 1);
 
 	}
