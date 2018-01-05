@@ -12,11 +12,7 @@ class Phpkit {
 	static $di;
 	static $BaseModel;
 	public function __construct($config = null) {
-		//phpkit 根目录
-		if (!defined("phpkitRoot")) {
-			define("phpkitRoot", dirname(dirname(dirname(dirname(dirname(__FILE__))))));
-		}
-
+		
 	}
 
 	//缓存
@@ -118,17 +114,18 @@ class Phpkit {
 				}
 			}
 
-
 			// Setting up the view component
 			if (empty($di['view'])) {
 				$di['view'] = function () use ($config) {
 					$view = new View();
 					$view->setViewsDir($config["viewsDir"] );
+					\phpkit\helper\mk_dir($config['cacheDir'] . 'view/');
                     $view->registerEngines([
-                       // '.phtml' => '\Phalcon\Mvc\View\Engine\Php',
+                        //'.phtml' => '\Phalcon\Mvc\View\Engine\Php',
                         '.phtml' => function($view, $di) use ($config) {
                             $volt = new \Phalcon\Mvc\View\Engine\Volt($view, $di);
-                            $volt->setOptions(['compiledPath'       => $config['cacheDir'] . 'view/',
+                            $volt->setOptions([
+                            	'compiledPath'       => $config['cacheDir'] . 'view/',
                                 'compiledExtension' => '.compiled',
                                 'compileAlways'     => true
                             ]);
@@ -247,14 +244,6 @@ class Phpkit {
 		}
 	}
 
-	//直接查数据库
-	public static function BaseModel($tableName = "") {
-		//if (empty(self::$BaseModel)) {
-		$model = new \phpkit\core\BaseModel($tableName);
-		//}
-		return $model;
-		//$model =setSource
 
-	}
 
 }
