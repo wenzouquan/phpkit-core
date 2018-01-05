@@ -80,7 +80,7 @@ class Phpkit {
 
 	public function init($config = array()) {
 		try {
-			error_reporting(E_ALL ^ E_NOTICE ^ E_STRICT);
+			error_reporting(E_ALL ^ E_NOTICE ^ E_STRICT ^ E_WARNING);
             //$this->setXdebugSession();
 			if (empty($config['date_default_timezone_set'])) {
 				date_default_timezone_set('PRC'); //设置为北京时间
