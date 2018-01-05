@@ -125,8 +125,8 @@ class Phpkit {
 					$view = new View();
 					$view->setViewsDir($config["viewsDir"] );
                     $view->registerEngines([
-                        '.phtml' => '\Phalcon\Mvc\View\Engine\Php',
-                        '.volt' => function($view, $di) use ($config) {
+                       // '.phtml' => '\Phalcon\Mvc\View\Engine\Php',
+                        '.phtml' => function($view, $di) use ($config) {
                             $volt = new \Phalcon\Mvc\View\Engine\Volt($view, $di);
                             $volt->setOptions(['compiledPath'       => $config['cacheDir'] . 'view/',
                                 'compiledExtension' => '.compiled',

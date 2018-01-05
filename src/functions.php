@@ -59,7 +59,7 @@ function mk_dir($path) {
 	//第2种情况，父目录存在，本身不存在
 	if (is_dir(dirname($path))) {
 		if (!is_writable(dirname($path))) {
-			throw new \Exception("Permission denied in" . dirname($path), 1);
+			throw new \Exception("Permission denied in : $path " , 1);
 		}
 		mkdir($path, 0777);
 	}
