@@ -6,13 +6,18 @@ use \Phalcon\Db\Adapter\Pdo\Mysql as AdapterMsql;
 use \Phalcon\DI\FactoryDefault;
 use \Phalcon\Mvc\Url;
 use \Phalcon\Mvc\View;
+use Phalcon\Mvc\Model\Manager as ModelsManager;
 
 class Phpkit {
 	static $cache;
 	static $di;
 	static $BaseModel;
 	public function __construct($config = null) {
-		
+		//phpkit 根目录
+		if (!defined("phpkitRoot")) {
+			define("phpkitRoot", dirname(dirname(dirname(dirname(dirname(__FILE__))))));
+		}
+
 	}
 
 	//缓存
@@ -80,7 +85,7 @@ class Phpkit {
 
 	public function init($config = array()) {
 		try {
-			error_reporting(E_ALL ^ E_NOTICE ^ E_STRICT ^ E_WARNING);
+			error_reporting(E_ALL ^ E_NOTICE ^ E_STRICT);
             //$this->setXdebugSession();
 			if (empty($config['date_default_timezone_set'])) {
 				date_default_timezone_set('PRC'); //设置为北京时间
@@ -114,18 +119,17 @@ class Phpkit {
 				}
 			}
 
+
 			// Setting up the view component
 			if (empty($di['view'])) {
 				$di['view'] = function () use ($config) {
 					$view = new View();
 					$view->setViewsDir($config["viewsDir"] );
-					\phpkit\helper\mk_dir($config['cacheDir'] . 'view/');
                     $view->registerEngines([
-                        //'.phtml' => '\Phalcon\Mvc\View\Engine\Php',
-                        '.phtml' => function($view, $di) use ($config) {
+                        '.phtml' => '\Phalcon\Mvc\View\Engine\Php',
+                        '.volt' => function($view, $di) use ($config) {
                             $volt = new \Phalcon\Mvc\View\Engine\Volt($view, $di);
-                            $volt->setOptions([
-                            	'compiledPath'       => $config['cacheDir'] . 'view/',
+                            $volt->setOptions(['compiledPath'       => $config['cacheDir'] . 'view/',
                                 'compiledExtension' => '.compiled',
                                 'compileAlways'     => true
                             ]);
@@ -232,6 +236,9 @@ class Phpkit {
 				};
 			}
 
+			$di['modelsManager'] =function() {
+        			return new ModelsManager();
+    		};
 			self::$di = $di;
 			//执行action
 			//call_user_func_array(array($controller, $actionName . "Action"), $params);
@@ -244,6 +251,14 @@ class Phpkit {
 		}
 	}
 
+	//直接查数据库
+	public static function BaseModel($tableName = "") {
+		//if (empty(self::$BaseModel)) {
+		$model = new \phpkit\core\BaseModel($tableName);
+		//}
+		return $model;
+		//$model =setSource
 
+	}
 
 }
