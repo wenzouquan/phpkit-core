@@ -85,7 +85,7 @@ class Phpkit {
 
 	public function init($config = array()) {
 		try {
-			error_reporting(E_ALL ^ E_NOTICE ^ E_STRICT);
+			error_reporting(E_ALL  ^ E_NOTICE ^ E_STRICT ^ E_WARNING);
             //$this->setXdebugSession();
 			if (empty($config['date_default_timezone_set'])) {
 				date_default_timezone_set('PRC'); //设置为北京时间
@@ -126,8 +126,8 @@ class Phpkit {
 					$view = new View();
 					$view->setViewsDir($config["viewsDir"] );
                     $view->registerEngines([
-                        '.phtml' => '\Phalcon\Mvc\View\Engine\Php',
-                        '.volt' => function($view, $di) use ($config) {
+                      //  '.phtml' => '\Phalcon\Mvc\View\Engine\Php',
+                        '.phtml' => function($view, $di) use ($config) {
                             $volt = new \Phalcon\Mvc\View\Engine\Volt($view, $di);
                             $volt->setOptions(['compiledPath'       => $config['cacheDir'] . 'view/',
                                 'compiledExtension' => '.compiled',
