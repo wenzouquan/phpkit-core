@@ -115,6 +115,9 @@ class Phpkit {
 				}
 			}
 
+			$di['setting'] = function () use ($config){
+				return $config;
+			};
 
 			// Setting up the view component
 			if (empty($di['view'])) {
