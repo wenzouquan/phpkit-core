@@ -6,18 +6,13 @@ use \Phalcon\Db\Adapter\Pdo\Mysql as AdapterMsql;
 use \Phalcon\DI\FactoryDefault;
 use \Phalcon\Mvc\Url;
 use \Phalcon\Mvc\View;
-use Phalcon\Mvc\Model\Manager as ModelsManager;
 
 class Phpkit {
 	static $cache;
 	static $di;
 	static $BaseModel;
 	public function __construct($config = null) {
-		//phpkit 根目录
-		if (!defined("phpkitRoot")) {
-			define("phpkitRoot", dirname(dirname(dirname(dirname(dirname(__FILE__))))));
-		}
-
+		 $this->config = $config;
 	}
 
 	//缓存
@@ -71,8 +66,8 @@ class Phpkit {
 		return $view;
 	}
 
-	public function run($config = array()) {
-		$application = $this->init($config);
+	public static function run($config = array()) {
+		$application = self::init($config);
 		echo $application->handle()->getContent();
 	}
 
@@ -83,9 +78,10 @@ class Phpkit {
 //        }
 //    }
 
-	public function init($config = array()) {
+	public static function init($config = array()) {
+
 		try {
-			error_reporting(E_ALL  ^ E_NOTICE ^ E_STRICT ^ E_WARNING);
+			error_reporting(E_ALL ^ E_NOTICE ^ E_STRICT ^ E_WARNING );
             //$this->setXdebugSession();
 			if (empty($config['date_default_timezone_set'])) {
 				date_default_timezone_set('PRC'); //设置为北京时间
@@ -126,8 +122,8 @@ class Phpkit {
 					$view = new View();
 					$view->setViewsDir($config["viewsDir"] );
                     $view->registerEngines([
-                      //  '.phtml' => '\Phalcon\Mvc\View\Engine\Php',
-                        '.phtml' => function($view, $di) use ($config) {
+                        '.phtml' => '\Phalcon\Mvc\View\Engine\Php',
+                        '.volt' => function($view, $di) use ($config) {
                             $volt = new \Phalcon\Mvc\View\Engine\Volt($view, $di);
                             $volt->setOptions(['compiledPath'       => $config['cacheDir'] . 'view/',
                                 'compiledExtension' => '.compiled',
@@ -146,10 +142,10 @@ class Phpkit {
 
 			if (empty($config['di']['url'])) {
 				$BaseUri = $config['appBaseUri'] ? "/" . $config['appBaseUri'] . "/" : "/";
-				define("tmpBaseUri", $BaseUri);
-				$di['url'] = function () {
+				//define("tmpBaseUri", $BaseUri);
+				$di['url'] = function () use($BaseUri) {
 					$url = new Url();
-					$url->setBaseUri(tmpBaseUri);
+					$url->setBaseUri($BaseUri);
 					return $url;
 				};
 			}
@@ -236,9 +232,6 @@ class Phpkit {
 				};
 			}
 
-			$di['modelsManager'] =function() {
-        			return new ModelsManager();
-    		};
 			self::$di = $di;
 			//执行action
 			//call_user_func_array(array($controller, $actionName . "Action"), $params);
