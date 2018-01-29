@@ -660,7 +660,7 @@ function downloadXls($filename) {
  * @return string
  * 
  */
-function thinkEncrypt($data, $key = '', $expire = 0) {
+function phpkitEncrypt($data, $key = '', $expire = 0) {
 	$key = $key?$key:'o8b2hqd1f7d9gscogiw0--=nk08@dgtr%##5';
 	$data = base64_encode(serialize($data));
 	$x = 0;
@@ -692,7 +692,7 @@ function thinkEncrypt($data, $key = '', $expire = 0) {
  * @return string
  * 
  */
-function thinkDecrypt($data, $key = '') {
+function phpkitDecrypt($data, $key = '') {
 	$key = $key?$key:'o8b2hqd1f7d9gscogiw0--=nk08@dgtr%##5';
 	$data = str_replace(array('-', '_'), array('+', '/'), $data);
 	$mod4 = strlen($data) % 4;
