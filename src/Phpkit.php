@@ -170,6 +170,9 @@ class Phpkit {
 
 			if (empty($config['di']['modelsMetadata'])) {
 				require 'apc.php';
+				if(!extension_loaded("apc") && !extension_loaded('apcu')){
+					throw new \Exception("not  suppert apc", 1);
+				}
 				$di['modelsMetadata'] = function () {
 					$metaData = new \Phalcon\Mvc\Model\MetaData\Apc(array(
 						"lifetime" => 0,
