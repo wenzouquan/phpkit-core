@@ -243,6 +243,7 @@ class Phpkit {
 			//call_user_func_array(array($controller, $actionName . "Action"), $params);
 			// Handle the request
 			$application = new \Phalcon\Mvc\Application($di);
+			$GLOBALS['phpkitApplicationByWin']=$application;
 			return $application;
 
 		} catch (Exception $e) {
