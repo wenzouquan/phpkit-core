@@ -363,7 +363,7 @@ function cutstr($str, $length = 0, $append = true, $charset = 'utf8') {
  * @param  string url
  * @return string
  */
-function mycurl($url, $post_file=[], $file = 0, $write=0) {
+function mycurl($url, $post_file=[],$headers=[], $file = 0, $write=0) {
 
 	if ($file) {
 		$cookie_dir = BOX_PATH . "/Runtime/cookie";
@@ -391,7 +391,7 @@ function mycurl($url, $post_file=[], $file = 0, $write=0) {
 	curl_setopt($ch, CURLOPT_URL, $url);
 	//curl_setopt($ch, CURLOPT_HTTPHEADER,$headerArr);  //构造IP
 	//curl_setopt($ch, CURLOPT_HEADER, 1);
-	$headers = array();
+	
 	$headers[] = "'User-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64; rv:40.0) Gecko/20100101 Firefox/40.0"; ////定义content-type为plain
 
 	//curl 'http://kjks.bjcz.gov.cn/cjcx/page/cjcx.pr.prcjcxdl_CJQuery.do' -H 'User-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64; rv:40.0) Gecko/20100101 Firefox/40.0' --data 'KJ_KSCJXX%2FPNAME=%CE%C2%D7%F7%C8%A8&KJ_KSCJXX%2FCID=441424198908176578&KJ_KSPHONE%2FPHONENM=15502154827'
@@ -728,6 +728,10 @@ function phpkitDecrypt($data, $key = '') {
 		}
 	}
 	return unserialize(base64_decode($str));
+}
+
+function getApp(){
+	return $GLOBALS['phpkitApplicationByWin'];
 }
 
 
