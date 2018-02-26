@@ -743,4 +743,40 @@ function NoRand($begin=0,$end=20,$limit=5){
 } 
 
 
+//检查 端口是否可用
+// case 2:
+//         echo "Closed\n";
+//         break;
+//       case 1:
+//         echo "Openning\n";
+//         break;
+//       case 0:
+//         echo "Timeout\n";
+//         break;
+function checkPort($ip, $port,$timeout=1){
+	error_reporting(E_ALL ^ E_NOTICE ^ E_STRICT ^ E_WARNING );
+    $sock = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+    socket_set_nonblock($sock);
+    socket_connect($sock,$ip, $port);
+    socket_set_block($sock);
+    $status = socket_select($r= array($sock),$w = array($sock),$f= array($sock) , $timeout);
+    socket_shutdown($sock);
+    return $status;
+}
+
+//获取可用的ip 和 $port
+function getHealthPort($ips){
+   $healthReids = \apc_fetch("HealthReids");
+   if($healthReids && checkPort($healthReids['ip'],$healthReids['port'])==1){
+   	 return $healthReids;
+   }
+   foreach ($ips as $key => $val) {
+   	   list($ip,$port)= explode(":", $val) ;
+   	   if(checkPort($ip,$port)==1){
+   	   	   apc_add("HealthReids",['ip'=>$ip,'port'=>$port]);
+   	   	  break;
+   	   }
+   }
+   return ['ip'=>$ip,'port'=>$port];
+}
 
