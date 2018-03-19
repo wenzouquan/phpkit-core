@@ -79,6 +79,9 @@ class Phpkit {
 //    }
 
 	public static function init($config = array()) {
+		$_GET     && \phpkit\helper\SafeFilter($_GET);
+		$_POST    && \phpkit\helper\SafeFilter($_POST);
+		$_COOKIE  && \phpkit\helper\SafeFilter($_COOKIE);
 
 		try {
 			error_reporting(E_ALL ^ E_NOTICE ^ E_STRICT ^ E_WARNING );
