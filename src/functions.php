@@ -401,6 +401,7 @@ function mycurl($url, $post_file=[],$headers=[], $file = 0, $write=0) {
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); ///设置不输出在浏览器上
 	curl_setopt($ch, CURLOPT_TIMEOUT, 30); //50秒超时
 	curl_setopt($ch, CURLOPT_USERAGENT, $agent);
+	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
 
 	/*curl_setopt($ch, CURLOPT_PROXYAUTH, CURLAUTH_BASIC); //代理认证模式
 		    curl_setopt($ch, CURLOPT_PROXY, "58.220.2.133"); //代理服务器地址
@@ -741,6 +742,34 @@ function NoRand($begin=0,$end=20,$limit=5){
 	shuffle($rand_array);//调用现成的数组随机排列函数 
 	return array_slice($rand_array,0,$limit);//截取前$limit个 
 } 
+
+
+
+function SafeFilter (&$arr) 
+{
+     
+   $ra=Array('/([\x00-\x08,\x0b-\x0c,\x0e-\x19])/','/script/','/javascript/','/vbscript/','/expression/','/applet/','/meta/','/xml/','/blink/','/link/','/style/','/embed/','/object/','/frame/','/layer/','/title/','/bgsound/','/base/','/onload/','/onunload/','/onchange/','/onsubmit/','/onreset/','/onselect/','/onblur/','/onfocus/','/onabort/','/onkeydown/','/onkeypress/','/onkeyup/','/onclick/','/ondblclick/','/onmousedown/','/onmousemove/','/onmouseout/','/onmouseover/','/onmouseup/','/onunload/');
+     
+   if (is_array($arr))
+   {
+     foreach ($arr as $key => $value) 
+     {
+        if (!is_array($value))
+        {
+          if (!get_magic_quotes_gpc())             //不对magic_quotes_gpc转义过的字符使用addslashes(),避免双重转义。
+          {
+             $value  = addslashes($value);           //给单引号（'）、双引号（"）、反斜线（\）与 NUL（NULL 字符）加上反斜线转义
+          }
+          $value       = preg_replace($ra,'',$value);     //删除非打印字符，粗暴式过滤xss可疑字符串
+          $arr[$key]     = htmlentities($value); //去除 HTML 和 PHP 标记并转换为 HTML 实体
+        }
+        else
+        {
+          SafeFilter($arr[$key]);
+        }
+     }
+   }
+}
 
 
 //检查 端口是否可用
