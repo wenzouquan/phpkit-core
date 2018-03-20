@@ -766,7 +766,7 @@ function SafeFilter (&$arr)
           {
              $value  = addslashes($value);           //给单引号（'）、双引号（"）、反斜线（\）与 NUL（NULL 字符）加上反斜线转义
           }
-          $value       = preg_replace($ra,'',$value);     //删除非打印字符，粗暴式过滤xss可疑字符串
+         // $value       = preg_replace($ra,'',$value);     //删除非打印字符，粗暴式过滤xss可疑字符串
           $arr[$key]     = htmlentities($value); //去除 HTML 和 PHP 标记并转换为 HTML 实体
         }
         else
@@ -777,6 +777,9 @@ function SafeFilter (&$arr)
    }
 }
 
+function decodeSafeFilter($arr){
+   return html_entity_decode(stripslashes($arr));
+}
 
 //检查 端口是否可用
 // case 2:
