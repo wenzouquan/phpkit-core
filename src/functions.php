@@ -742,10 +742,11 @@ function getApp(){
 
 
 //
-function NoRand($begin=0,$end=20,$limit=5){ 
+function NoRand($begin=0,$end=1001,$limit=10){ 
 	$rand_array=range($begin,$end); 
 	shuffle($rand_array);//调用现成的数组随机排列函数 
-	return array_slice($rand_array,0,$limit);//截取前$limit个 
+	$str = time().implode("", array_slice($rand_array,0,$limit)) ;//截取前$limit个 
+	return $str;
 } 
 
 
