@@ -17,6 +17,11 @@ function convertUnderline($str, $ucfirst = true, $split = "-") {
 }
 
 
+function getRequestUrl(){
+	$url = $_SERVER['REQUEST_SCHEME']."://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
+	return $url;
+}
+
 /**获取ip**/
 function getIp($type = 0) {
 	$type = $type ? 1 : 0;
