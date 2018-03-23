@@ -803,18 +803,17 @@ function checkPort($ip, $port,$timeout=1){
 }
 
 //获取可用的ip 和 $port
-function getHealthPort($ips){
-   $healthReids = \apc_fetch("HealthReids");
-   if($healthReids && checkPort($healthReids['ip'],$healthReids['port'])==1){
+function getHealthPort($ips,$ipkey="HealthPortIp"){
+   $healthReids = \apc_fetch($ipkey);
+   if($healthReids ){
    	 return $healthReids;
    }
    foreach ($ips as $key => $val) {
    	   list($ip,$port)= explode(":", $val) ;
    	   if(checkPort($ip,$port)==1){
-   	   	   apc_add("HealthReids",['ip'=>$ip,'port'=>$port]);
+   	   	   \apc_add($ipkey, ['ip'=>$ip,'port'=>$port],3);
    	   	  break;
    	   }
    }
    return ['ip'=>$ip,'port'=>$port];
 }
-
